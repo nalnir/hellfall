@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://bu46p02gsjtd7"]
+
+[ext_resource type="PackedScene" uid="uid://bauj16wgnu1wg" path="res://scenes/score_board.tscn" id="1_0wfyh"]
+[ext_resource type="PackedScene" uid="uid://1nftcjip2qbr" path="res://scenes/player.tscn" id="1_o5qli"]
+[ext_resource type="PackedScene" uid="uid://cg4jx5fjkmajc" path="res://scenes/spawner.tscn" id="3_sugp2"]
+
+[node name="main" type="Node2D"]
+
+[node name="scoreBoard" parent="." instance=ExtResource("1_0wfyh")]
+
+[node name="player" parent="." instance=ExtResource("1_o5qli")]
+position = Vector2(19, -4)
+
+[node name="spawner" parent="." instance=ExtResource("3_sugp2")]
+position = Vector2(358, 1520)

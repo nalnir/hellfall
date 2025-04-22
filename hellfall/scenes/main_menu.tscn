@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://cbgvt0xvk762f"]
+
+[ext_resource type="Script" uid="uid://drnuunchqrcu2" path="res://scripts/mainMenu.gd" id="1_l6cm7"]
+
+[node name="mainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l6cm7")
+
+[node name="Box" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.056
+anchor_bottom = 0.02
+offset_left = 181.0
+offset_top = 1058.0
+offset_right = 524.68
+offset_bottom = 1098.4
+
+[node name="PlayButton" type="Button" parent="Box"]
+layout_mode = 2
+text = "Play"
+
+[node name="QuitButton" type="Button" parent="Box"]
+layout_mode = 2
+text = "Quit"

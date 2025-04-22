@@ -1,0 +1,252 @@
+extends CharacterBody2D
+
+@export var length: float = 50.0  # Swipe distance threshold
+@export var threshold: float = 10.0  # Directional tolerance
+@export var long_press_threshold: float = 0.75  # Seconds for long press
+@export var hate_rush_swipe_timeout: float = 1.0  # Seconds before resetting up-swipe counter
+
+# Swipe state
+var swiping := false
+var start_pos = null
+var end_pos := Vector2.ZERO
+var cur_pos = null
+var touch_index: int = -1  # Track specific touch for multi-touch
+
+# Long press state
+var press_timer := 0.0
+var press_timer_treshold = 0.20
+var is_long_pressing := false
+var ghostCloackActive := false
+
+# Hate Rush state
+var press_count := 0
+var hate_rush_active := false
+var timeout := 1.0
+var is_adding_swipe_count := false
+var hate_rush_cooling_down := false
+
+enum Power { DEFAULT, FREEZE, FLAME, CRASH, GHOST, HATERUSH }
+@export var current_power: Power = Power.DEFAULT
+var prev_power: Power
+
+@onready var player := $"."
+@onready var score_board := $"../../scoreBoard" as Control
+@onready var default_body_anim := $Animations/DefaultBodyAnimatedSprite2D as AnimatedSprite2D
+@onready var mask_anim := $Animations/MaskAnimatedSprite2D as AnimatedSprite2D
+@onready var hate_rush_anim := $Animations/HateRushAnimatedSprite2D as AnimatedSprite2D
+@onready var spawner := $"../../spawner" as Node2D
+var initial_position := Vector2.ZERO
+
+signal kill_player
+
+func _ready() -> void:
+	hate_rush_anim.hide()
+	default_body_anim.play("falling")
+	mask_anim.play("eyeBlink")
+	initial_position = position
+	connect("kill_player", _kill_player)
+
+func _process(delta: float) -> void:
+	# HANDLE HATE RUSH
+	 
+	if hate_rush_active:
+		if !hate_rush_cooling_down:
+			hate_rush_cooling_down = true
+			hate_rush_cooldown()
+		return
+		
+	if press_count > 0 && !hate_rush_active:
+		handle_haterush_states()
+		timeout -= delta
+		if timeout <= 0.0:
+			reset_haterush()
+
+		
+	#HANDLE LONG PRESS
+	if press_timer >= press_timer_treshold:
+		handle_long_press()
+	if is_long_pressing:
+		press_timer += delta
+	else:
+		if press_timer != 0:
+			press_timer = 0
+		
+
+func _input(event: InputEvent) -> void:
+	if hate_rush_active:
+		return
+		
+	# HANDLE LONG PRESS
+	if event is InputEventScreenTouch:
+		if event.is_pressed() and !event.is_released():
+			is_long_pressing = true
+		elif event.is_released() and !event.is_pressed():
+			is_long_pressing = false
+			await stop_ghost_cloak()
+			ghostCloackActive = false
+			press_count += 1
+			
+	elif event is InputEventScreenDrag:
+		reset_haterush()
+		if start_pos == null:
+			start_pos = event.position
+		elif event.is_released():
+			end_pos = event.position
+			handle_swipe()
+
+func handle_swipe() -> void:
+	if !swiping:
+		swiping = true
+	
+		var delta: Vector2 = end_pos - start_pos
+		var delta_x: float = abs(delta.x)
+		var delta_y: float = abs(delta.y)
+
+		# Only process swipe if movement exceeds threshold
+		if delta.length() < threshold:
+			swiping = false
+			start_pos = null
+			return
+	
+		 # Calculate swipe angle to determine direction more accurately
+		var angle = atan2(delta.y, delta.x) * 180 / PI
+		var is_horizontal = delta_x > delta_y and delta_x > threshold
+		var is_vertical = delta_y > delta_x and delta_y > threshold
+
+		if is_horizontal:
+			# Horizontal swipe logic (unchanged)
+			if end_pos.x > start_pos.x:
+				reset_haterush()
+				if current_power != Power.FREEZE:
+					prev_power = current_power
+					current_power = Power.FREEZE
+					mask_anim.hide()
+					if prev_power == Power.DEFAULT:
+						default_body_anim.play("swipeRight")
+					else:
+						default_body_anim.play("swipeRightFromFlame")
+					await get_tree().create_timer(0.2).timeout 
+					default_body_anim.play("fallingFreeze")
+					mask_anim.show()
+			elif end_pos.x < start_pos.x:
+				reset_haterush()
+				if current_power != Power.FLAME:
+					prev_power = current_power
+					current_power = Power.FLAME
+					mask_anim.hide()
+					if prev_power == Power.DEFAULT:
+						default_body_anim.play("swipeLeft")
+					else:
+						default_body_anim.play("swipeLeftFromFreeze")
+					await get_tree().create_timer(0.2).timeout 
+					default_body_anim.play("fallingFlame")
+					mask_anim.show()
+		
+		elif is_vertical:
+			# Vertical swipe with stricter angle check
+			# Up swipe: angle between -135 and -45 degrees
+			# Down swipe: angle between 45 and 135 degrees
+			if abs(angle) > 45 and abs(angle) < 135:
+				if delta.y > 0:  # Swiping down
+					reset_haterush()
+					prev_power = current_power
+					current_power = Power.CRASH
+
+					if player.position.y == initial_position.y:
+						var tween = create_tween()
+						mask_anim.hide()
+						default_body_anim.play("crash")
+						tween.tween_property(player, "position", Vector2(player.position.x, player.position.y + 350), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						await get_tree().create_timer(1).timeout 
+						mask_anim.show()
+						default_body_anim.play("falling")
+						tween = create_tween()
+						tween.tween_property(player, "position", Vector2(initial_position.x, initial_position.y), 0.3).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						prev_power = current_power
+						current_power = Power.DEFAULT
+				elif delta.y < 0:  # Swiping up
+					print("SWIPING UP")
+		
+		swiping = false
+		start_pos = null
+	
+func handle_long_press() -> void:
+	if !ghostCloackActive:
+		reset_haterush()
+		ghostCloackActive = true
+		prev_power = current_power
+		current_power = Power.GHOST
+		mask_anim.hide()
+		match prev_power:
+			Power.DEFAULT:
+				default_body_anim.play("ghostCloackStart")
+				await get_tree().create_timer(0.1).timeout
+				default_body_anim.play("ghostCloackIdle")
+			Power.FLAME:
+				default_body_anim.play("ghostCloackFlameStart")
+				await get_tree().create_timer(0.1).timeout
+				default_body_anim.play("ghostCloackFlameIdle")
+			Power.FREEZE:
+				default_body_anim.play("ghostCloackFreezeStart")
+				await get_tree().create_timer(0.1).timeout
+				default_body_anim.play("ghostCloackFreezeIdle")
+
+func _kill_player() -> void:
+	score_board.get_child(0).emit_signal("is_player_dead")
+	spawner.emit_signal("player_dead")
+	queue_free()
+
+func reset_from_ghost_cloak(finish_anim: String, next_anim: String) -> void:
+	default_body_anim.play(finish_anim)
+	await get_tree().create_timer(0.1).timeout
+	default_body_anim.play(next_anim)
+	mask_anim.show()
+
+func stop_ghost_cloak() -> void:
+	if ghostCloackActive:
+		match prev_power:
+			Power.DEFAULT:
+				await reset_from_ghost_cloak("ghostCloackFinish", "falling")
+				prev_power = current_power
+				current_power = Power.DEFAULT
+			Power.FLAME:
+				await reset_from_ghost_cloak("ghostCloackFlameFinish", "fallingFlame")
+				prev_power = current_power
+				current_power = Power.FLAME
+			Power.FREEZE:
+				await reset_from_ghost_cloak("ghostCloackFreezeFinish", "fallingFreeze")
+				prev_power = current_power
+				current_power = Power.FREEZE
+				
+func handle_haterush_states() -> void:
+	if press_count == 1:
+		hate_rush_anim.show()
+		hate_rush_anim.play("stage1")
+	elif press_count == 2:
+		hate_rush_anim.play("stage2")
+	elif press_count == 3:
+		hate_rush_anim.play("stage3")
+		hate_rush_active = true
+
+func reset_haterush() -> void:
+	#print("reset_haterush: ", reset_haterush)
+	timeout = 1.0
+	if press_count == 0:
+		return
+	if press_count == 1:
+		hate_rush_anim.play("stage1Finish")
+	elif press_count == 2:
+		hate_rush_anim.play("stage2Finish")
+	press_count = 0
+
+func hate_rush_cooldown() -> void:
+	hate_rush_anim.play("idle")
+	await get_tree().create_timer(7.0).timeout
+	#mask_anim.show()
+	hate_rush_active = false
+	#hate_rush_anim.play("stage3Finish")  
+	press_count = 0
+	timeout = 1.0
+	prev_power = current_power
+	current_power = Power.DEFAULT
+	hate_rush_cooling_down = false
