@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3 uid="uid://cbl0kvq066e0r"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e2f22"]
+
+[sub_resource type="GDScript" id="GDScript_e2f22"]
+script/source = "extends Node2D
+
+var currentScore = 0
+
+func _process(delta: float) -> void:
+	currentScore = GlobalVars.get_score()
+	set_speed(delta)
+
+func set_speed(delta: float) -> void:
+	if currentScore >= GlobalVars.scoreTreshold.one && currentScore < GlobalVars.scoreTreshold.two:
+		position.y += GlobalVars.speedTreshold.one * delta
+	elif currentScore >= GlobalVars.scoreTreshold.two && currentScore < GlobalVars.scoreTreshold.three:
+		position.y += GlobalVars.speedTreshold.two * delta
+	elif currentScore >= GlobalVars.scoreTreshold.three:
+		position.y += GlobalVars.speedTreshold.three * delta
+	else:
+		position.y += GlobalVars.defaultSpeed * delta
+"
+
+[node name="playerReturnPoint" type="Node2D"]
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(270, 200)
+scale = Vector2(2.4, 2.4)
+shape = SubResource("CircleShape2D_e2f22")
+debug_color = Color(0.878547, 0.000381966, 0.827098, 0.42)
+script = SubResource("GDScript_e2f22")

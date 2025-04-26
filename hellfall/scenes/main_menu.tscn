@@ -16,10 +16,10 @@ layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.056
 anchor_bottom = 0.02
-offset_left = 181.0
-offset_top = 1058.0
-offset_right = 524.68
-offset_bottom = 1098.4
+offset_left = 98.0
+offset_top = 792.0
+offset_right = 441.68
+offset_bottom = 838.8
 
 [node name="PlayButton" type="Button" parent="Box"]
 layout_mode = 2

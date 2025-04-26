@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://bq2a1npj53ix2"]
+
+[ext_resource type="Texture2D" uid="uid://b2win30aa3bn2" path="res://images/damned1.png" id="1_pqr6t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4wgd4"]
+size = Vector2(45, 74)
+
+[node name="damned" type="Node2D"]
+
+[node name="damned" type="RigidBody2D" parent="."]
+collision_layer = 4
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="damned"]
+position = Vector2(54, 44)
+shape = SubResource("RectangleShape2D_4wgd4")
+
+[node name="Sprite2D" type="Sprite2D" parent="damned/CollisionShape2D"]
+position = Vector2(-53, -44)
+scale = Vector2(0.205, 0.2)
+texture = ExtResource("1_pqr6t")
+centered = false

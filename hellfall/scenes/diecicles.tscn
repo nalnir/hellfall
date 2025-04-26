@@ -260,8 +260,8 @@ projectileType = "diecicles"
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Area2D"]
-position = Vector2(0.999985, 41)
-scale = Vector2(1.7601, 1.17)
+position = Vector2(3.48998, 41.5)
+scale = Vector2(1.81996, 1.005)
 sprite_frames = SubResource("SpriteFrames_bbvjj")
 animation = &"idle"
 frame = 2

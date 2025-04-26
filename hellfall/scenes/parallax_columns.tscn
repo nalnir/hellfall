@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnlx5m2kvf4st"]
+
+[ext_resource type="Texture2D" uid="uid://be4dom61yyb1j" path="res://images/primaryColumns.png" id="1_fn08j"]
+
+[node name="parallax_columns" type="Node2D"]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+layer = 2
+
+[node name="primary" type="ParallaxLayer" parent="ParallaxBackground"]
+z_index = 2
+motion_mirroring = Vector2(0, 960)
+
+[node name="primaryColumns" type="Sprite2D" parent="ParallaxBackground/primary"]
+z_index = 2
+position = Vector2(-14, 0)
+scale = Vector2(1.05556, 1)
+texture = ExtResource("1_fn08j")
+centered = false

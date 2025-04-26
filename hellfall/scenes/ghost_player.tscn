@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://doejp7akbrwvb"]
+
+[ext_resource type="Script" uid="uid://vyywaw6uqh4i" path="res://scripts/ghostPlayer.gd" id="1_d10ha"]
+
+[node name="ghostPlayer" type="Node2D"]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+position = Vector2(270, 150)
+script = ExtResource("1_d10ha")
+
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
+position = Vector2(-270, -150)
+anchor_mode = 0

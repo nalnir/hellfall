@@ -13,15 +13,18 @@ var projectileType = 0
 	
 signal player_dead
 var playerIsDead = false
+var currentScore = 0
 	
 func _ready():
 	self.connect("player_dead", Callable(self, "_player_dead"))
 	spawner.wait_time = waitTimeTotal
-	projectileType = randi_range(0, 3)
+	projectileType = randi_range(0, 1)
 	spawner.start()
 	
-func _process(_delta):
-	set_wait_time(GlobalVars.get_score())
+func _process(delta):
+	currentScore = GlobalVars.get_score()
+	set_speed(delta)
+	set_wait_time()
 	
 func _on_timer_timeout():
 	var projectile: Node2D
@@ -39,19 +42,37 @@ func _on_timer_timeout():
 		if !playerIsDead:
 			get_parent().add_child(projectile)
 		waitTimeTotal = randi_range(waitTimeStart, waitTimeEnd)
-		projectileType = randi_range(0, 3)
+		setProjectileType()
 
-func set_wait_time(score: int) -> void:
-	if score > 500 && score < 750:
+func set_wait_time() -> void:
+	if currentScore > 500 && currentScore < 750:
 		waitTimeEnd = 8
-	elif score > 750 && score < 1000:
+	elif currentScore > 750 && currentScore < 1000:
 		waitTimeEnd = 6
-	elif score > 1000 && score < 1300:
+	elif currentScore > 1000 && currentScore < 1300:
 		waitTimeStart = 2
 		waitTimeEnd = 5
-	elif score > 1300:
+	elif currentScore > 1300:
 		waitTimeStart = 2
 		waitTimeEnd = 5
 
 func _player_dead() -> void:
 	playerIsDead = true
+
+func setProjectileType() -> void:
+	if currentScore < GlobalVars.scoreTreshold.one:
+		projectileType = randi_range(0, 1)
+	elif currentScore > GlobalVars.scoreTreshold.one && currentScore < GlobalVars.scoreTreshold.two:
+		projectileType = randi_range(0, 2)
+	elif currentScore > GlobalVars.scoreTreshold.two:
+		projectileType = randi_range(0, 3)
+
+func set_speed(delta: float) -> void:
+	if currentScore >= GlobalVars.scoreTreshold.one && currentScore < GlobalVars.scoreTreshold.two:
+		position.y += GlobalVars.speedTreshold.one * delta
+	elif currentScore >= GlobalVars.scoreTreshold.two && currentScore < GlobalVars.scoreTreshold.three:
+		position.y += GlobalVars.speedTreshold.two * delta
+	elif currentScore >= GlobalVars.scoreTreshold.three:
+		position.y += GlobalVars.speedTreshold.three * delta
+	else:
+		position.y += GlobalVars.defaultSpeed * delta

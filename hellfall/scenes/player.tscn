@@ -1,6 +1,6 @@
 [gd_scene load_steps=1303 format=3 uid="uid://1nftcjip2qbr"]
 
-[ext_resource type="Script" uid="uid://6cb46gqpuwxf" path="res://scripts/playerNew.gd" id="1_6o0gl"]
+[ext_resource type="Script" uid="uid://6cb46gqpuwxf" path="res://scripts/player.gd" id="1_6o0gl"]
 [ext_resource type="Texture2D" uid="uid://cpa23nq6gfbq7" path="res://spritesheets/fall/00.png" id="2_scswl"]
 [ext_resource type="Texture2D" uid="uid://c8mlkeq3uo10a" path="res://spritesheets/fall/01.png" id="3_iauo8"]
 [ext_resource type="Texture2D" uid="uid://viic7dcm0hw1" path="res://spritesheets/fall/02.png" id="4_cndj2"]
@@ -5704,29 +5704,33 @@ animations = [{
 radius = 79.3221
 
 [node name="player" type="Node2D"]
+z_index = 2
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
-position = Vector2(141, 62)
+position = Vector2(270, 150)
 scale = Vector2(0.3, 0.3)
+collision_mask = 2
 script = ExtResource("1_6o0gl")
 
 [node name="Animations" type="Node2D" parent="CharacterBody2D"]
+z_index = 2
 
 [node name="DefaultBodyAnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D/Animations"]
-position = Vector2(390, 291.667)
+z_index = 2
 sprite_frames = SubResource("SpriteFrames_3vyb7")
 animation = &"swipeRightFromFlame"
 
 [node name="MaskAnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D/Animations"]
-position = Vector2(390, 288)
+z_index = 2
 sprite_frames = SubResource("SpriteFrames_bt3of")
 animation = &"eyeBlink"
 
 [node name="HateRushAnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D/Animations"]
-position = Vector2(390, 218.333)
+z_index = 2
+position = Vector2(0, -75)
 sprite_frames = SubResource("SpriteFrames_usti6")
 animation = &"stage3Finish"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
-position = Vector2(388, 449)
+position = Vector2(0, 165)
 shape = SubResource("CircleShape2D_u8vuu")
