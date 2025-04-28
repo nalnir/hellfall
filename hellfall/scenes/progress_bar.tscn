@@ -1,10 +1,15 @@
-[gd_scene format=3 uid="uid://dsaeo2ecrvg3p"]
+[gd_scene load_steps=3 format=3 uid="uid://dsaeo2ecrvg3p"]
+
+[ext_resource type="Texture2D" uid="uid://2nu38rwsnew1" path="res://images/progressBar/under.png" id="1_8un81"]
+[ext_resource type="Texture2D" uid="uid://dskmmchxryos3" path="res://images/progressBar/progress.png" id="2_1iuoo"]
 
 [node name="progressBar" type="Node2D"]
 
-[node name="hateRushBar" type="ProgressBar" parent="."]
-offset_left = 15.0
-offset_top = 15.0
-offset_right = 19.0
-offset_bottom = 42.0
-max_value = 2000.0
+[node name="hateRushBar" type="TextureProgressBar" parent="."]
+offset_right = 500.0
+offset_bottom = 90.0
+scale = Vector2(0.2, 0.2)
+max_value = 500.0
+nine_patch_stretch = true
+texture_under = ExtResource("1_8un81")
+texture_progress = ExtResource("2_1iuoo")

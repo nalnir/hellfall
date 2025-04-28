@@ -29,7 +29,9 @@ enum Power { DEFAULT, FREEZE, FLAME, CRASH, GHOST, HATERUSH }
 @export var current_power: Power = Power.DEFAULT
 var prev_power: Power
 
-@onready var player := $"."
+@onready var player := $"." as CharacterBody2D
+@onready var playerSprites:= $Animations as Node2D
+@onready var playerCollider:= $CollisionShape2D as CollisionShape2D
 @onready var ghostPlayer := $"../../ghostPlayer" as Node2D
 @onready var score_board := $"../../CanvasLayerScore/scoreBoard" as Control
 @onready var default_body_anim := $Animations/DefaultBodyAnimatedSprite2D as AnimatedSprite2D
@@ -45,7 +47,8 @@ signal kill_player
 signal add_haterush_point
 
 var currentScore = 0;
-var hateRushBar: ProgressBar
+var hateRushBar: TextureProgressBar
+var unlockHaterushAbility = false
 
 func _ready() -> void:
 	hateRushBar = progressBar.get_child(0)
@@ -68,14 +71,12 @@ func _process(delta: float) -> void:
 		return
 	
 	# HATE RUSH PRESS
-	"""
-	if currentScore >= GlobalVars.scoreTreshold.three:
+	if currentScore >= GlobalVars.scoreTreshold.one && unlockHaterushAbility:
 		if press_count > 0 && !hate_rush_active:
 			handle_haterush_states()
 			timeout -= delta
 			if timeout <= 0.0:
 				reset_haterush()
-	"""
 	
 	#HANDLE LONG PRESS
 	if currentScore >= GlobalVars.scoreTreshold.two:
@@ -169,14 +170,20 @@ func handle_swipe() -> void:
 						current_power = Power.CRASH
 		
 						var tween = create_tween()
+						tween.set_parallel(true)
 						mask_anim.hide()
 						default_body_anim.play("crash")
-						tween.tween_property(player, "position", Vector2(player.position.x, player.position.y + 500), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						#tween.tween_property(player, "position", Vector2(player.position.x, player.position.y + 500), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						tween.tween_property(playerSprites, "position", Vector2(playerSprites.position.x, playerSprites.position.y + 1000), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						tween.tween_property(playerCollider, "position", Vector2(playerCollider.position.x, playerCollider.position.y + 1000), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 						await get_tree().create_timer(1).timeout 
 						mask_anim.show()
 						default_body_anim.play("falling")
 						tween = create_tween()
-						tween.tween_property(player, "position", Vector2(player.position.x, player.position.y - 500), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						tween.set_parallel(true)
+						#tween.tween_property(player, "position", Vector2(player.position.x, player.position.y), 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						tween.tween_property(playerSprites, "position", Vector2(playerSprites.position.x, playerSprites.position.y - 1000), 0.3).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+						tween.tween_property(playerCollider, "position", Vector2(playerCollider.position.x, playerCollider.position.y - 1000), 0.3).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 						prev_power = current_power
 						current_power = Power.DEFAULT
 							
@@ -215,8 +222,11 @@ func _kill_player() -> void:
 	#queue_free()
 
 func _add_haterush_point(point: int) -> void:
-	hateRushBar.value += point
-	print("haterush point value: ", hateRushBar.value)
+	print("unlockHaterushAbility: ", unlockHaterushAbility)
+	if hateRushBar.value >= hateRushBar.max_value:
+		unlockHaterushAbility = true
+	else:
+		hateRushBar.value += point
 
 func set_speed(delta: float) -> void:
 	if currentScore >= GlobalVars.scoreTreshold.one && currentScore < GlobalVars.scoreTreshold.two:
@@ -272,16 +282,29 @@ func reset_haterush() -> void:
 	press_count = 0
 
 func hate_rush_cooldown() -> void:
+	prev_power = current_power
+	current_power = Power.HATERUSH
 	hate_rush_anim.play("idle")
+	reset_haterush_progressbar()
 	await get_tree().create_timer(7.0).timeout
-	#mask_anim.show()
 	hate_rush_active = false
-	#hate_rush_anim.play("stage3Finish")  
 	press_count = 0
 	timeout = 1.0
-	prev_power = current_power
-	current_power = Power.DEFAULT
+	current_power = prev_power
 	hate_rush_cooling_down = false
+	unlockHaterushAbility = false
+	hate_rush_anim.play("stage3Finish")
+	await get_tree().create_timer(1.0).timeout
+	mask_anim.show()
+	hate_rush_anim.hide()
+
+func reset_haterush_progressbar() -> void:
+	if hateRushBar.value >= 0:
+		#hateRushBar.value -= (hateRushBar.value / 7)
+		var tween = create_tween()
+		tween.tween_property(hateRushBar, "value", 0.0, 7.0).from(hateRushBar.value)
+	else: 
+		hateRushBar.value = 0
 
 func get_speed_treshold() -> float:
 	if currentScore >= GlobalVars.scoreTreshold.one && currentScore < GlobalVars.scoreTreshold.two:

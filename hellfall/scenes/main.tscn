@@ -23,7 +23,7 @@ offset_right = 25.0
 offset_bottom = 25.0
 
 [node name="progressBar" parent="CanvasLayerScore" instance=ExtResource("2_choun")]
-position = Vector2(482, 25)
+position = Vector2(420, 25)
 
 [node name="CanvasLayerColumns" type="CanvasLayer" parent="."]
 layer = 3
